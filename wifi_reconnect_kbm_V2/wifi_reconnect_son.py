@@ -14,10 +14,10 @@ from selenium.webdriver.common.by import By
 print("WiFi ağına bağlanılıyor...")
 
 # Değişkenleri ayarla (SSID ve şifre)
-SSID = "Kbb-WiLokal"
-Sifre = "KbbW1Lokal"
-USERNAME = "yari.zamanli"
-PASSWORD_WEB = "Bm12345."
+SSID = "wifi name"
+Sifre = "wifi password"
+USERNAME = "web login username"
+PASSWORD_WEB = "web login password"
 ip = ""
 driver = None
 
