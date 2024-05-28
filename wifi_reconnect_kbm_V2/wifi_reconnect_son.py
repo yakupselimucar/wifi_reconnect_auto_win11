@@ -1,87 +1,85 @@
-# 'pip install -r requirements.txt'     -komutunu yazınız
-# chromedriver yüklemek gerekli: https://googlechromelabs.github.io/chrome-for-testing/#stable
-# sonrasında indirilen doysa zipten çıkarılıp çevre değişkenlerine path olarak eklenmeli
-# IP çekmek için
+# 'pip install -r requirements.txt'     -write in the terminal
+# chromedriver must be installed: https://googlechromelabs.github.io/chrome-for-testing/#stable
+# after downloading the chromedriver, you need to add the path to the chromedriver.exe file to the system environment variables.
 
+# to pull the ip address 
 import requests
-from bs4 import BeautifulSoup  # Kurulması gerek. Komut: pip install beautifulsoup4
+from bs4 import BeautifulSoup  # it must be installed. Command: pip install beautifulsoup4
 import time
 import subprocess
-from selenium import webdriver  # Kurulması gerek. Komut: pip install selenium
+from selenium import webdriver  # it must be installed. Command: pip install selenium
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
-print("WiFi ağına bağlanılıyor...")
+print("connecting to the WiFi network...")
 
-# Değişkenleri ayarla (SSID ve şifre)
+# adjust the following variables according to your own information
 SSID = "wifi name"
 Sifre = "wifi password"
 USERNAME = "web login username"
 PASSWORD_WEB = "web login password"
-ip = ""
+ip = ""  # it should be empty at the beginning
 driver = None
 
 
 def wifi_connect_func():
     global ip, driver
-    # WiFi ağına bağlan
+    # connect to the WiFi network
     baglanma_komutu = f'netsh wlan connect name="{SSID}" ssid="{SSID}" interface="Wi-Fi"'
     baglanma_sonucu = subprocess.run(baglanma_komutu, shell=True)
 
-    # Eğer ağa bağlanma başarısız olursa, hata mesajı göster
+    # if the connection is not successful, print an error message and exit the program
     if baglanma_sonucu.returncode != 0:
-        print("WiFi ağına bağlanma başarısız oldu.")
-        input("Devam etmek için bir tuşa basın...")
+        print("Error: Could not connect to the WiFi network. Please check the SSID and password.")
+        input("to continue press enter...")
         exit()
     time.sleep(5)
-    print("WiFi ağına başarıyla bağlandı.")
+    print("Successfully connected to the WiFi network...")
     time.sleep(5)
     # ---------------------------------------------------------
-    # İstenilen web sitesinden veri çekme
-
-    url = "https://internet.konya.bel.tr/"
+    
+    # pull data from the desired web page
+    url = "Paste here the URL of the website from which the ip will be retrieved" # I wrote this to pull the ip directly from the site because the ip address at the end of the url I use for web logging is constantly changing. 
     response = requests.get(url)
 
-    # HTML içeriğini parse etme
+    # Parse HTML content
     parsed_html = BeautifulSoup(response.text, 'html.parser')
 
-    # "inner cover" sınıfındaki <h3> etiketini bulma
+    # Find the <h3> tag in the “inner cover” class
     h3_etiketi = parsed_html.find(class_="inner cover").find('h3')
 
-    # <h3> etiketinin içindeki <b> etiketinin metin içeriğine erişme
+    # Access the text content of the <b> tag inside the <h3> tag
     ip = h3_etiketi.find('b')
     print(ip.text)
     # time.sleep(10)
 
-    web_url = "http://10.254.0.254:1000/login?" + ip.text
+    web_url = "The url of the page to be logged in" + ip.text # We create the url of the page to be web logged by adding the ip address received with ip.text to the url of the page to be web logged.
     print(web_url)
     time.sleep(5)
     # ---------------------------------------------------------
     try:
-        # Selenium kullanarak web sayfasına giriş yapma
-        driver = webdriver.Chrome()  # Webdriver'ı çalıştır
-        driver.get(web_url)  # Web sayfasını aç
-        username_field = driver.find_element(By.NAME, "username")  # Kullanıcı adı alanını bul
-        username_field.send_keys(USERNAME)  # Kullanıcı adını gir
-        password_field = driver.find_element(By.NAME, "password")  # Şifre alanını bul
-        password_field.send_keys(PASSWORD_WEB)  # Şifreyi gir
-        password_field.send_keys(Keys.RETURN)  # Enter tuşuna bas
-        print("Web sayfasına giriş yapıldı.")
+        # Use Selenium to log into the web page
+        driver = webdriver.Chrome()                                # Run the Webdriver
+        driver.get(web_url)                                        # Open the web page
+        username_field = driver.find_element(By.NAME, "username")  # Find the username field
+        username_field.send_keys(USERNAME)                         # Enter the username
+        password_field = driver.find_element(By.NAME, "password")  # Find the password field
+        password_field.send_keys(PASSWORD_WEB)                     # Enter the password
+        password_field.send_keys(Keys.RETURN)                      # Click "Enter"
+        print("Entered the web page...")
 
     except Exception as e:
-        print("Web sayfasına giriş yapılırken hata oluştu:", e)
+        print("An error occurred while logging into the web page:", e)
     finally:
-        # Tarayıcıyı kapat
+        # exit browser
         driver.quit()
 
 
-#   -------------------------ALTTAKİ İKİ SATIR GEREKİ OLMAYABİLİR WHILE İÇERİSİNE EKLEMEYE ÇALIŞ
-
-# Bağlantıyı 30 saniyede bir kontrol et
+# Check the connection every 100 seconds
 while True:
     wifi_connect_func()
-    time.sleep(50)
-    print("kontrol edildi")
+    time.sleep(100)
+    print("connection checked...")
 
 
 
